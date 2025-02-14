@@ -2,14 +2,13 @@ use ark_serialize::{
     CanonicalDeserialize, CanonicalDeserializeWithFlags, CanonicalSerialize,
     CanonicalSerializeWithFlags, EmptyFlags, Flags,
 };
-use rug::{Assign, Integer};
-
+use ark_std::Zero;
 use ark_std::{
     fmt::{Debug, Display},
     hash::Hash,
     iter::*,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-    vec::*,
+    vec::*, UniformRand,
 };
 
 
@@ -21,6 +20,7 @@ pub mod class;
 use ark_std::cmp::max;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
+use zeroize::Zeroize;
 
 pub trait AdditiveGroup:
     Eq
@@ -84,4 +84,10 @@ pub trait AdditiveGroup:
         *self = -(*self);
         self
     }
+}
+
+
+
+pub trait Integer {
+    
 }
