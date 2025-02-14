@@ -1,0 +1,15 @@
+[package]
+name = "ark-guo"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ark-std ={ version = "0.5.0" }
+ark-serialize = { version = "0.5.0" }
+rayon = { version = "1.5.1", optional = true}
+rug = "1.27.0"
+
+
+[features]
+
+parallel = ["rayon", "ark-std/parallel", "ark-serialize/parallel" ]
