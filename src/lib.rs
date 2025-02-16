@@ -1,26 +1,25 @@
 use ark_serialize::{
-    CanonicalDeserialize, CanonicalDeserializeWithFlags, CanonicalSerialize,
-    CanonicalSerializeWithFlags, EmptyFlags, Flags,
+    CanonicalDeserialize, CanonicalSerialize,
 };
-use ark_std::Zero;
+use ark_std::{One, Zero};
+use zeroize::Zeroize;
+
 use ark_std::{
     fmt::{Debug, Display},
     hash::Hash,
     iter::*,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-    vec::*, UniformRand,
+    ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+    UniformRand,
 };
 
 
 pub mod class;
-
-
+pub mod integer;
 
 #[cfg(feature = "parallel")]
 use ark_std::cmp::max;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
-use zeroize::Zeroize;
 
 pub trait AdditiveGroup:
     Eq
@@ -28,7 +27,6 @@ pub trait AdditiveGroup:
     + Sized
     + CanonicalSerialize
     + CanonicalDeserialize
-    + Copy
     + Clone
     + Default
     + Send
@@ -69,25 +67,59 @@ pub trait AdditiveGroup:
     /// Doubles `self`.
     #[must_use]
     fn double(&self) -> Self {
-        let mut copy = *self;
+        let mut copy = self.clone();
         copy.double_in_place();
         copy
     }
     /// Doubles `self` in place.
     fn double_in_place(&mut self) -> &mut Self {
-        *self += *self;
+        *self += self.clone();
         self
     }
 
     /// Negates `self` in place.
     fn neg_in_place(&mut self) -> &mut Self {
-        *self = -(*self);
+        *self = -(self.clone());
         self
     }
 }
 
 
-
-pub trait Integer {
+pub trait Integer:
+    'static
+    + Clone
+    + Debug
+    + Display
+    + Default
+    + Send
+    + Sync
+    + Eq
+    + Zero
+    + One
+    + Ord
+    + Neg<Output = Self>
+    + UniformRand
+    + Zeroize
+    + Sized
+    + Hash
+    + CanonicalSerialize
+    // + CanonicalSerializeWithFlags
+    + CanonicalDeserialize
+    // + CanonicalDeserializeWithFlags
+    + AdditiveGroup<Scalar = Self>
+    + for<'a> core::iter::Product<&'a Self>
+    + From<u128>
+    + From<u64>
+    + From<u32>
+    + From<u16>
+    + From<u8>
+    + From<i128>
+    + From<i64>
+    + From<i32>
+    + From<i16>
+    + From<i8>
+    + From<bool>
+    + Product<Self>
+{
     
 }
