@@ -1,8 +1,13 @@
 use serde::{Deserialize, Serialize};
 use ark_serialize::{
-    CanonicalDeserialize, CanonicalSerialize, Compress, Valid, Validate
+    CanonicalDeserialize, CanonicalDeserializeWithFlags, 
+    CanonicalSerialize, CanonicalSerializeWithFlags, 
+    Compress, Flags, Valid, Validate
 };
-use ark_std::{rand::{distributions::Standard, prelude::Distribution, Rng}, One, Zero};
+use ark_std::{
+    rand::{distributions::Standard, prelude::Distribution, Rng}, 
+    One, Zero
+};
 use zeroize::Zeroize;
 
 use ark_std::{
@@ -12,8 +17,14 @@ use ark_std::{
     ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
-use rug::Integer as RugInteger;
-use crate::{AdditiveGroup, Integer};
+use rug::{
+    Complete, 
+    Integer as RugInteger
+};
+use crate::{
+    AdditiveGroup, 
+    Integer
+};
 
 // Implement the integer trait for ZZ
 #[derive(Clone, Debug, Default, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -61,6 +72,40 @@ impl CanonicalDeserialize for ZZ {
     }
 }
 
+impl CanonicalSerializeWithFlags for ZZ {
+    fn serialize_with_flags<W: ark_std::io::Write, F: Flags>(
+        &self,
+        mut writer: W,
+        flags: F,
+    ) -> Result<(), ark_serialize::SerializationError> {
+        let flag_byte = flags.u8_bitmask();
+        let mut bytes = bincode::serialize(self).unwrap();
+        bytes.push(flag_byte);
+
+        writer.write_all(&bytes)?;
+        Ok(())
+    }
+
+    fn serialized_size_with_flags<F: Flags>(&self) -> usize {
+        let bytes = bincode::serialize(self).unwrap();
+        bytes.len()
+    }
+}
+
+impl CanonicalDeserializeWithFlags for ZZ {
+    fn deserialize_with_flags<R: ark_std::io::Read, F: Flags>(
+        mut reader: R,
+    ) -> Result<(Self, F), ark_serialize::SerializationError> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes)?;
+
+        let value = bincode::deserialize(&bytes[..bytes.len() - 1]).unwrap();
+        let flag_byte = bytes[bytes.len() - 1];
+        let flags = F::from_u8(flag_byte).unwrap();
+        Ok((value, flags))
+    }
+}
+
 // No checks for integers
 impl Valid for ZZ {
     fn check(&self) -> Result<(), ark_serialize::SerializationError> {
@@ -69,11 +114,10 @@ impl Valid for ZZ {
 }
 
 // Rand
-// For actual use, use rug's internal random number generator
+// Use rug's internal random number generator
 impl Distribution<ZZ> for Standard {
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> ZZ {
-        let value = rng.gen_range(0..100);
-        ZZ::from(value)
+    fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> ZZ {
+        unimplemented!();
     }
 }
 
@@ -374,6 +418,14 @@ impl From<i128> for ZZ {
     fn from(value: i128) -> Self {
         Self {
             value: RugInteger::from(value),
+        }
+    }
+}
+
+impl From<&str> for ZZ {
+    fn from(value: &str) -> Self {
+        Self {
+            value: RugInteger::parse(value).unwrap().complete(),
         }
     }
 }

@@ -22,3 +22,6 @@ pub struct ClassGroup {
     b: RugInteger,
     c: RugInteger,
 }
+
+// ClassConfig - Specs for group - discriminants
+// ClassGroup generic on config?

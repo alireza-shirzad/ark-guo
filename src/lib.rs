@@ -1,5 +1,6 @@
 use ark_serialize::{
-    CanonicalDeserialize, CanonicalSerialize,
+    CanonicalDeserialize, CanonicalSerialize, 
+    CanonicalDeserializeWithFlags, CanonicalSerializeWithFlags,
 };
 use ark_std::{One, Zero};
 use zeroize::Zeroize;
@@ -103,9 +104,9 @@ pub trait Integer:
     + Sized
     + Hash
     + CanonicalSerialize
-    // + CanonicalSerializeWithFlags
+    + CanonicalSerializeWithFlags
     + CanonicalDeserialize
-    // + CanonicalDeserializeWithFlags
+    + CanonicalDeserializeWithFlags
     + AdditiveGroup<Scalar = Self>
     + for<'a> core::iter::Product<&'a Self>
     + From<u128>
