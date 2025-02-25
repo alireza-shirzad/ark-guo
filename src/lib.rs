@@ -62,8 +62,8 @@ pub trait AdditiveGroup:
 {
     type Scalar: Integer;
 
-    /// The additive identity of the field.
-    const ZERO: Self;
+    // /// The additive identity of the field.
+    // const ZERO: Self;
 
     /// Doubles `self`.
     #[must_use]

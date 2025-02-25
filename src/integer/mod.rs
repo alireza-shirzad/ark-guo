@@ -1,3 +1,5 @@
+use std::ops::Shr;
+
 use serde::{Deserialize, Serialize};
 use ark_serialize::{
     CanonicalDeserialize, CanonicalDeserializeWithFlags, 
@@ -19,7 +21,8 @@ use ark_std::{
 
 use rug::{
     Complete, 
-    Integer as RugInteger
+    Integer as RugInteger,
+    ops::Pow
 };
 use crate::{
     AdditiveGroup, 
@@ -29,12 +32,47 @@ use crate::{
 // Implement the integer trait for ZZ
 #[derive(Clone, Debug, Default, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct ZZ {
-    value: RugInteger,
+    pub value: RugInteger,
 }
+
+// Additional useful methods
+impl ZZ {
+    pub fn is_odd(&self) -> bool {
+        self.value.is_odd()
+    }
+
+    pub fn modulus(&self, other: &Self) -> Self {
+        Self {
+            value: self.value.clone() % &other.value,
+        }
+    }
+
+    pub fn pow(&self, other: &u32) -> Self {
+        Self {
+            value: self.value.clone().pow(other),
+        }
+    }
+
+    pub fn div_rem_ceil_mut(&mut self, divisor: &mut Self) {
+        self.value.div_rem_ceil_mut(&mut divisor.value);
+    }
+
+    pub fn div_rem_floor_mut(&mut self, divisor: &mut Self) {
+        self.value.div_rem_floor_mut(&mut divisor.value);
+    }
+
+    pub fn extended_gcd_mut(&mut self, other: &mut Self, rop: &mut Self) {
+        self.value.extended_gcd_mut(&mut other.value, &mut rop.value);
+    }
+
+    pub fn div_exact(&mut self, other: &Self) {
+        self.value.div_exact_mut(&other.value);
+    } 
+}
+
 
 impl AdditiveGroup for ZZ {
     type Scalar = Self;
-    const ZERO: Self = ZZ { value: RugInteger::ZERO };
 }
 
 impl Integer for ZZ { }
@@ -114,7 +152,7 @@ impl Valid for ZZ {
 }
 
 // Rand
-// Use rug's internal random number generator
+// Use rug's internal random number generator instead
 impl Distribution<ZZ> for Standard {
     fn sample<R: Rng + ?Sized>(&self, _rng: &mut R) -> ZZ {
         unimplemented!();
@@ -192,6 +230,16 @@ impl Mul for ZZ {
     fn mul(self, other: Self) -> Self::Output {
         Self {
             value: self.value * other.value,
+        }
+    }
+}
+
+impl Shr<u32> for ZZ {
+    type Output = Self;
+
+    fn shr(self, other: u32) -> Self::Output {
+        Self {
+            value: self.value >> other,
         }
     }
 }
